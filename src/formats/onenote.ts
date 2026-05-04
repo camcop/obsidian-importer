@@ -594,7 +594,16 @@ export class OneNoteImporter extends FormatImporter {
 				ctime: created ?? lastModified ?? Date.now(),
 				mtime: lastModified ?? created ?? Date.now(),
 			};
-			await this.vault.append(fileRef, '', writeOptions);
+
+			// Write timestamps into frontmatter so they survive re-imports
+			this.app.fileManager.processFrontMatter(fileRef, (frontmatter) => {
+				if (page.createdDateTime) {
+					frontmatter['created'] = new Date(page.createdDateTime).toISOString();
+				}
+				if (page.lastModifiedDateTime) {
+					frontmatter['modified'] = new Date(page.lastModifiedDateTime).toISOString();
+				}
+			}, writeOptions);
 			progress.reportNoteSuccess(page.title!);
 		}
 		catch (e) {
